@@ -12,6 +12,15 @@ const Layouts = () => import("@/layouts/index.vue")
  */
 export const constantRoutes: RouteRecordRaw[] = [
   {
+    path: "/knowledge",
+    name: "Knowledge",
+    component: () => import("@/pages/knowledge/index.vue"),
+    meta: {
+      title: "Knowledge Base",
+      elIcon: "Collection"
+    }
+  },
+  {
     path: "/redirect",
     component: Layouts,
     meta: {
