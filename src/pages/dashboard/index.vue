@@ -1,13 +1,20 @@
 <script lang="ts" setup>
-import { useUserStore } from "@/pinia/stores/user"
-import Admin from "./components/Admin.vue"
-import Editor from "./components/Editor.vue"
-
-const userStore = useUserStore()
-
-const isAdmin = userStore.roles.includes("admin")
 </script>
 
 <template>
-  <component :is="isAdmin ? Admin : Editor" />
+  <div class="dashboard-container">
+    <h1>AI Knowledge Workbench</h1>
+
+    <p style="margin-top: 16px;">
+      A unified workspace for knowledge management, RAG-based AI chat,
+      and MCP tool orchestration.
+    </p>
+
+    <ul style="margin-top: 24px;">
+      <li>📚 Knowledge Base Management</li>
+      <li>🤖 AI Chat with RAG</li>
+      <li>🛠 MCP Tool Visualization</li>
+      <li>📝 Tasks & Logs</li>
+    </ul>
+  </div>
 </template>
