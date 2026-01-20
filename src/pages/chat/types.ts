@@ -12,3 +12,11 @@ export interface ChatSession {
   messages: ChatMessage[]
   createdAt: string
 }
+
+export interface ChatContext {
+  question: string
+  knowledge: {
+    id: string
+    title: string
+  }[]
+}

@@ -12,6 +12,10 @@ export function useKnowledge() {
     }
   ])
 
+  const readyKnowledge = computed(() =>
+    list.value.filter(item => item.status === "ready")
+  )
+
   function addKnowledge(title: string) {
     const item: KnowledgeItem = {
       id: Date.now().toString(),
@@ -42,6 +46,7 @@ export function useKnowledge() {
 
   return {
     list,
+    readyKnowledge,
     addKnowledge,
     removeKnowledge
   }
