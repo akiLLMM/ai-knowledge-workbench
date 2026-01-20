@@ -1,21 +1,14 @@
 <script setup lang="ts">
+import KnowledgeEditor from "./components/KnowledgeEditor.vue"
+import KnowledgeList from "./components/KnowledgeList.vue"
+import { useKnowledge } from "./composables/useKnowledge"
 
+const { list, addKnowledge } = useKnowledge()
 </script>
 
 <template>
   <div class="knowledge-page">
-    <h2>Knowledge Base</h2>
-
-    <p style="margin-top: 12px;">
-      Manage documents for AI retrieval and knowledge augmentation.
-    </p>
-
-    <el-button type="primary" style="margin-top: 16px;">
-      Add Knowledge
-    </el-button>
+    <KnowledgeEditor @submit="addKnowledge" />
+    <KnowledgeList :list="list" />
   </div>
 </template>
-
-<style scoped lang="scss">
-
-</style>
