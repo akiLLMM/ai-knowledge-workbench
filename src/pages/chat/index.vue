@@ -67,7 +67,8 @@ onMounted(() => {
   createSession()
 })
 
-function onAsk() {
+function onEnter() {
+  if (isThinking.value) return
   if (!question.value.trim()) return
 
   ask(question.value, selectedKnowledgeIds.value)
@@ -159,13 +160,15 @@ function scrollToBottomAndResume() {
         v-model="question"
         placeholder="请输入你的问题"
         :disabled="isThinking"
+        @keydown.enter.exact.prevent="onEnter"
+        @keydown.shift.enter.stop
       />
 
       <button
-        @click="onAsk"
+        @click="onEnter"
         :disabled="isThinking"
       >
-        提问
+        {{ isThinking ? "思考中…" : "提问" }}
       </button>
     </section>
   </div>
