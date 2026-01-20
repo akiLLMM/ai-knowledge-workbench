@@ -13,6 +13,56 @@ const question = ref("")
 // 3 Chat 引擎（通过依赖注入消费 knowledge）
 const { session, createSession, ask, isThinking } = useChat(readyKnowledge)
 
+const messagesEl = ref<HTMLElement | null>(null)
+
+// 是否自动滚动（用户手动上滑后可关闭）
+const autoScroll = ref(true)
+
+function scrollToBottom() {
+  const el = messagesEl.value
+  if (!el) return
+  el.scrollTop = el.scrollHeight
+}
+
+function updateAutoScroll() {
+  const el = messagesEl.value
+  if (!el) return
+
+  const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+  // 离底部很近就认为用户希望自动滚动
+  autoScroll.value = distanceToBottom < 24
+}
+
+// 监听消息列表长度变化：新消息出现时滚到底部
+watch(
+  () => session.value?.messages.length,
+  async () => {
+    if (!autoScroll.value) return
+    await nextTick()
+    scrollToBottom()
+  }
+)
+
+// 监听 streaming：assistant 最后一条消息内容变化时也滚动
+watch(
+  () => {
+    const messages = session.value?.messages
+    if (!messages || messages.length === 0) return ""
+    const last = messages[messages.length - 1]
+    return `${last.id}:${last.content.length}`
+  },
+  async () => {
+    if (!autoScroll.value) return
+    await nextTick()
+    scrollToBottom()
+  }
+)
+
+onMounted(async () => {
+  await nextTick()
+  scrollToBottom()
+})
+
 onMounted(() => {
   createSession()
 })
@@ -53,20 +103,25 @@ function onAsk() {
     <!-- 对话区 -->
     <section v-if="session">
       <h3>对话</h3>
-
       <div
-        v-for="msg in session.messages"
-        :key="msg.id"
-        style="margin-bottom: 8px"
+        ref="messagesEl"
+        style="height: 420px; overflow: auto; border: 1px solid #eee; padding: 12px; border-radius: 8px"
+        @scroll="updateAutoScroll"
       >
-        <strong>{{ msg.role }}：</strong>
-        <pre style="display: inline">{{ msg.content }}</pre>
-      </div>
-      <div
-        v-if="isThinking"
-        style="margin-top: 8px; color: #888"
-      >
-        🤖 正在思考中，请稍候…
+        <div
+          v-for="msg in session.messages"
+          :key="msg.id"
+          style="margin-bottom: 8px"
+        >
+          <strong>{{ msg.role }}：</strong>
+          <pre style="display: inline; white-space: pre-wrap">{{ msg.content }}</pre>
+        </div>
+        <div
+          v-if="isThinking"
+          style="margin-top: 8px; color: #888"
+        >
+          🤖 正在思考中，请稍候…
+        </div>
       </div>
     </section>
 
