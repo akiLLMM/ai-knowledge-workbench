@@ -15,6 +15,11 @@ const { session, createSession, ask, isThinking } = useChat(readyKnowledge)
 
 const messagesEl = ref<HTMLElement | null>(null)
 
+// 判断chat空状态引导
+const isEmptyChat = computed(() => {
+  return session.value && session.value.messages.length === 0
+})
+
 // 是否自动滚动（用户手动上滑后可关闭）
 const autoScroll = ref(true)
 
@@ -112,6 +117,33 @@ function scrollToBottomAndResume() {
     <!-- 对话区 -->
     <section v-if="session">
       <h3>对话</h3>
+      <!-- Chat 空状态 -->
+      <div
+        v-if="isEmptyChat"
+        style="
+          padding: 32px;
+          text-align: center;
+          color: #666;
+          border: 1px dashed #ddd;
+          border-radius: 8px;
+        "
+      >
+        <div style="font-size: 18px; margin-bottom: 8px;">
+          👋 欢迎使用 AI 知识助手
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          你可以基于自己的知识库，向 AI 提问并获得整理后的回答。
+        </div>
+
+        <div style="font-size: 14px; line-height: 1.8;">
+          开始前你可以：<br>
+          1️⃣ 选择要使用的知识<br>
+          2️⃣ 在下方输入你的问题<br>
+          3️⃣ 按 Enter 发送，Shift + Enter 换行
+        </div>
+      </div>
+      <!-- 正常消息列表 -->
       <div
         ref="messagesEl"
         style="height: 420px; overflow: auto; border: 1px solid #eee; padding: 12px; border-radius: 8px"
@@ -156,6 +188,12 @@ function scrollToBottomAndResume() {
 
     <!-- 输入区 -->
     <section>
+      <div
+        v-if="selectedKnowledgeIds.length === 0"
+        style="font-size: 12px; color: #999; margin-bottom: 4px;"
+      >
+        💡 未选择知识时，AI 将基于问题本身进行回答
+      </div>
       <textarea
         v-model="question"
         placeholder="请输入你的问题"
