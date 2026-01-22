@@ -156,8 +156,16 @@ function scrollToBottomAndResume() {
           :class="msg.role"
           style="margin-bottom: 8px"
         >
+          <!-- assistant 头像（左） -->
+          <div v-if="msg.role === 'assistant'" class="chat-avatar assistant">
+            🤖
+          </div>
           <div class="chat-bubble">
             <pre style="display: inline; white-space: pre-wrap">{{ msg.content }}</pre>
+          </div>
+          <!-- user 头像（右） -->
+          <div v-if="msg.role === 'user'" class="chat-avatar user">
+            👤
           </div>
         </div>
         <div
@@ -165,8 +173,11 @@ function scrollToBottomAndResume() {
           class="chat-message assistant"
           style="margin-top: 8px; color: #888"
         >
+          <div class="chat-avatar assistant">
+            🤖
+          </div>
           <div class="chat-bubble thinking">
-            🤖 正在思考中，请稍候…
+            正在思考中，请稍候…
           </div>
         </div>
         <!-- 回到底部按钮 -->
@@ -279,5 +290,46 @@ function scrollToBottomAndResume() {
 .chat-bubble.thinking {
   font-style: italic;
   color: #666;
+}
+
+.chat-message {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+/* user 消息靠右 */
+.chat-message.user {
+  justify-content: flex-end;
+}
+
+/* assistant 消息靠左 */
+.chat-message.assistant {
+  justify-content: flex-start;
+}
+
+/* 头像通用样式 */
+.chat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 8px;
+  flex-shrink: 0;
+}
+
+/* user 头像 */
+.chat-avatar.user {
+  background: #1677ff;
+  color: #fff;
+}
+
+/* assistant 头像 */
+.chat-avatar.assistant {
+  background: #eee;
+  color: #555;
 }
 </style>
