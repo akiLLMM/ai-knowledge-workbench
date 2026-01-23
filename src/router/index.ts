@@ -7,7 +7,7 @@ import { flatMultiLevelRoutes } from "./helper"
 const Layouts = () => import("@/layouts/index.vue")
 
 /**
- * @name 常驻路由
+ * @name static router
  * @description 除了 redirect/403/404/login 等隐藏页面，其他页面建议设置唯一的 Name 属性
  */
 export const constantRoutes: RouteRecordRaw[] = [
@@ -102,7 +102,7 @@ export const constantRoutes: RouteRecordRaw[] = [
 ]
 
 /**
- * @name 动态路由
+ * @name dynamic router
  * @description 用来放置有权限 (Roles 属性) 的路由
  * @description 必须带有唯一的 Name 属性
  */
