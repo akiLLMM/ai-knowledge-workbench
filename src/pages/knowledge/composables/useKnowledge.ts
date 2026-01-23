@@ -2,15 +2,7 @@ import type { KnowledgeItem } from "@/pages/knowledge/types"
 import { ref } from "vue"
 
 export function useKnowledge() {
-  const list = ref<KnowledgeItem[]>([
-    {
-      id: "1",
-      title: "Vue 响应式原理",
-      type: "text",
-      status: "ready",
-      updatedAt: "2026-01-20"
-    }
-  ])
+  const list = ref<KnowledgeItem[]>([])
 
   const readyKnowledge = computed(() =>
     list.value.filter(item => item.status === "ready")
