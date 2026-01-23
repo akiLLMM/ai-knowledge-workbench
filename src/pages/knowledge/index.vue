@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue"
 import KnowledgeEditor from "./components/KnowledgeEditor.vue"
 import KnowledgeList from "./components/KnowledgeList.vue"
 import { useKnowledge } from "./composables/useKnowledge"

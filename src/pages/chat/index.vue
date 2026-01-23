@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { computed, nextTick, onMounted, ref, watch } from "vue" // 补全 computed, watch, nextTick 引用
+import { useRoute } from "vue-router" // 1. 引入 useRoute
 import { useKnowledge } from "../knowledge/composables/useKnowledge"
 import { useChat } from "./composables/useChat"
+
+const route = useRoute() // 2. 获取路由实例
 
 // 1 读取 Knowledge（只读视图）
 const { readyKnowledge } = useKnowledge()
@@ -72,8 +75,22 @@ onMounted(async () => {
   scrollToBottom()
 })
 
+// 3. 在 onMounted 中处理自动选中逻辑
 onMounted(() => {
   createSession()
+
+  // 检查 URL 是否带了 knowledge 参数
+  const preSelectedId = route.query.knowledge as string
+  if (preSelectedId) {
+    // 确认该 ID 是否有效且已就绪
+    const target = readyKnowledge.value.find(k => k.id === preSelectedId)
+    if (target) {
+      // 自动勾选
+      if (!selectedKnowledgeIds.value.includes(preSelectedId)) {
+        selectedKnowledgeIds.value.push(preSelectedId)
+      }
+    }
+  }
 })
 
 function onEnter() {

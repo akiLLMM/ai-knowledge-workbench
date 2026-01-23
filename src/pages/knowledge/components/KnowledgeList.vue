@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { KnowledgeItem } from "../types"
 import { computed } from "vue"
+import { useRouter } from "vue-router"
 
 // 接受 list，并对外发出 create 事件（父组件可据此聚焦编辑器）
 const props = defineProps<{
@@ -12,6 +13,14 @@ defineEmits<{
 }>()
 
 const isEmpty = computed(() => props.list.length === 0)
+
+const router = useRouter()
+
+function useInChat(item: KnowledgeItem) {
+  // 仅允许已就绪的知识进入 Chat
+  if (item.status !== "ready") return
+  router.push({ path: "/chat", query: { knowledge: item.id } })
+}
 </script>
 
 <template>
@@ -41,7 +50,7 @@ const isEmpty = computed(() => props.list.length === 0)
     <li v-for="item in props.list" :key="item.id" class="list-item">
       <span class="item-title">{{ item.title }}</span>
 
-      <!-- 行内 status badge：processing 显示 spinner -->
+      <!-- 行内 status badge -->
       <span
         class="badge"
         :class="item.status"
@@ -49,10 +58,18 @@ const isEmpty = computed(() => props.list.length === 0)
         :aria-label="item.status"
       >
         <span v-if="item.status === 'processing'" class="spinner" aria-hidden="true" />
-        <span class="badge-text">
-          {{ item.status === 'processing' ? '处理中' : '已完成' }}
-        </span>
+        <span class="badge-text">{{ item.status === 'processing' ? '处理中' : '已完成' }}</span>
       </span>
+
+      <!-- 在 Chat 中使用 按钮（仅就绪时可点击） -->
+      <button
+        class="use-chat-btn"
+        :disabled="item.status !== 'ready'"
+        :title="item.status === 'ready' ? '在 Chat 中使用' : '正在处理，稍后可用'"
+        @click="useInChat(item)"
+      >
+        在 Chat 中使用
+      </button>
     </li>
   </ul>
 </template>
@@ -102,9 +119,9 @@ const isEmpty = computed(() => props.list.length === 0)
 }
 .list-item {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
-  padding: 6px 0;
+  padding: 10px 0;
   border-bottom: 1px solid #f0f0f0;
 }
 .item-title {
@@ -113,7 +130,7 @@ const isEmpty = computed(() => props.list.length === 0)
   color: #222;
 }
 
-/* badge 基础样式 */
+/* badge */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -125,22 +142,16 @@ const isEmpty = computed(() => props.list.length === 0)
   min-height: 28px;
   box-sizing: border-box;
 }
-
-/* processing 风格（带 spinner）*/
 .badge.processing {
   background: #fff7e6;
   color: #ad6a00;
   border: 1px solid #ffe7ba;
 }
-
-/* ready 风格 */
 .badge.ready {
   background: #f6ffed;
   color: #237804;
   border: 1px solid #b7eb8f;
 }
-
-/* 小圆形 spinner */
 .spinner {
   width: 14px;
   height: 14px;
@@ -151,15 +162,30 @@ const isEmpty = computed(() => props.list.length === 0)
   box-sizing: border-box;
   animation: spin 0.9s linear infinite;
 }
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
-
-/* 文字对齐微调 */
 .badge-text {
   line-height: 1;
+}
+
+/* 在 Chat 中使用 按钮样式 */
+.use-chat-btn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #1890ff;
+  background: #1890ff;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+.use-chat-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f0f0f0;
+  color: #999;
+  border-color: #e0e0e0;
 }
 </style>
