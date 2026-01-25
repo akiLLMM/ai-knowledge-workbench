@@ -1,23 +1,13 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
 import type { LoginRequestData } from "./apis/type"
-import ThemeSwitch from "@@/components/ThemeSwitch/index.vue"
 import { Key, Loading, Lock, Picture, User } from "@element-plus/icons-vue"
-import { useSettingsStore } from "@/pinia/stores/settings"
 import { useUserStore } from "@/pinia/stores/user"
 import { getCaptchaApi, loginApi } from "./apis"
-import Owl from "./components/Owl.vue"
-import { useFocus } from "./composables/useFocus"
-
-const route = useRoute()
 
 const router = useRouter()
-
+const route = useRoute()
 const userStore = useUserStore()
-
-const settingsStore = useSettingsStore()
-
-const { isFocus, handleBlur, handleFocus } = useFocus()
 
 /** 登录表单元素的引用 */
 const loginFormRef = useTemplateRef("loginFormRef")
@@ -27,6 +17,8 @@ const loading = ref(false)
 
 /** 验证码图片 URL */
 const codeUrl = ref("")
+/** 本地验证码文本 */
+const captchaText = ref("")
 
 /** 登录表单数据 */
 const loginFormData: LoginRequestData = reactive({
@@ -56,6 +48,15 @@ function handleLogin() {
       ElMessage.error("表单校验不通过")
       return
     }
+
+    // 本地验证码校验
+    if (loginFormData.code.trim().toLowerCase() !== captchaText.value.toLowerCase()) {
+      ElMessage.error("验证码错误")
+      createCode()
+      loginFormData.code = ""
+      return
+    }
+
     loading.value = true
     loginApi(loginFormData).then(({ data }) => {
       userStore.setToken(data.token)
@@ -69,16 +70,15 @@ function handleLogin() {
   })
 }
 
-/** 创建验证码 */
-function createCode() {
-  // 清空已输入的验证码
+/** 创建验证码（接口获取） */
+async function createCode() {
   loginFormData.code = ""
-  // 清空验证图片
-  codeUrl.value = ""
-  // 获取验证码图片
-  getCaptchaApi().then((res) => {
-    codeUrl.value = res.data
-  })
+  try {
+    const { data } = await getCaptchaApi()
+    codeUrl.value = data
+  } catch {
+    ElMessage.error("验证码获取失败")
+  }
 }
 
 // 初始化验证码
@@ -87,14 +87,25 @@ createCode()
 
 <template>
   <div class="login-container">
-    <ThemeSwitch v-if="settingsStore.showThemeSwitch" class="theme-switch" />
-    <Owl :close-eyes="isFocus" />
     <div class="login-card">
-      <div class="title">
-        <img src="@@/assets/images/layouts/logo-text-2.png">
+      <div class="brand">
+        <!-- 替换为你的 logo 路径 -->
+        <img class="brand-logo" src="@@/assets/images/layouts/Klogo-text-2.png" alt="logo">
+        <div class="brand-title">
+          AI Knowledge Workbench
+        </div>
+        <div class="brand-subtitle">
+          面向个人的 RAG 轻量工作台
+        </div>
       </div>
-      <div class="content">
-        <el-form ref="loginFormRef" :model="loginFormData" :rules="loginFormRules" @keyup.enter="handleLogin">
+
+      <div class="form-area">
+        <el-form
+          ref="loginFormRef"
+          :model="loginFormData"
+          :rules="loginFormRules"
+          @keyup.enter="handleLogin"
+        >
           <el-form-item prop="username">
             <el-input
               v-model.trim="loginFormData.username"
@@ -105,6 +116,7 @@ createCode()
               size="large"
             />
           </el-form-item>
+
           <el-form-item prop="password">
             <el-input
               v-model.trim="loginFormData.password"
@@ -114,10 +126,9 @@ createCode()
               :prefix-icon="Lock"
               size="large"
               show-password
-              @blur="handleBlur"
-              @focus="handleFocus"
             />
           </el-form-item>
+
           <el-form-item prop="code">
             <el-input
               v-model.trim="loginFormData.code"
@@ -127,8 +138,6 @@ createCode()
               :prefix-icon="Key"
               maxlength="7"
               size="large"
-              @blur="handleBlur"
-              @focus="handleFocus"
             >
               <template #append>
                 <el-image :src="codeUrl" draggable="false" @click="createCode">
@@ -146,10 +155,15 @@ createCode()
               </template>
             </el-input>
           </el-form-item>
+
           <el-button :loading="loading" type="primary" size="large" @click.prevent="handleLogin">
             登 录
           </el-button>
         </el-form>
+
+        <div class="form-hint">
+          默认账号：admin / editor · 密码：12345678
+        </div>
       </div>
     </div>
   </div>
@@ -157,53 +171,94 @@ createCode()
 
 <style lang="scss" scoped>
 .login-container {
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  width: 100%;
-  min-height: 100%;
+  justify-content: center;
+  background: linear-gradient(180deg, #f7f9fc 0%, #ffffff 100%);
+  padding: 24px;
+  position: relative;
+
   .theme-switch {
     position: fixed;
-    top: 5%;
-    right: 5%;
+    top: 24px;
+    right: 24px;
     cursor: pointer;
   }
-  .login-card {
-    width: 480px;
-    max-width: 90%;
-    border-radius: 20px;
-    box-shadow: 0 0 10px #dcdfe6;
-    background-color: var(--el-bg-color);
+}
+
+.login-card {
+  width: 420px;
+  max-width: 92vw;
+  border-radius: 16px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+  box-shadow: 0 8px 32px rgba(16, 24, 40, 0.08);
+  padding: 28px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  .brand-logo {
+    height: 44px;
+    object-fit: contain;
+  }
+
+  .brand-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
+    letter-spacing: 0.2px;
+  }
+
+  .brand-subtitle {
+    font-size: 13px;
+    color: var(--el-text-color-secondary);
+  }
+}
+
+.form-area {
+  :deep(.el-input-group__append) {
+    padding: 0;
     overflow: hidden;
-    .title {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 150px;
-      img {
-        height: 100%;
-      }
-    }
-    .content {
-      padding: 20px 50px 50px 50px;
-      :deep(.el-input-group__append) {
-        padding: 0;
-        overflow: hidden;
-        .el-image {
-          width: 100px;
-          height: 40px;
-          border-left: 0px;
-          user-select: none;
-          cursor: pointer;
-          text-align: center;
-        }
-      }
-      .el-button {
-        width: 100%;
-        margin-top: 10px;
-      }
+    .el-image {
+      width: 104px;
+      height: 40px;
+      border-left: 0;
+      user-select: none;
+      cursor: pointer;
+      text-align: center;
+      background: var(--el-fill-color-light);
     }
   }
+
+  .el-button {
+    width: 100%;
+    margin-top: 6px;
+  }
+}
+
+.form-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  text-align: center;
+}
+
+/* 暗色模式优化 */
+:global(.dark) .login-container {
+  background: linear-gradient(180deg, #0f1115 0%, #14171d 100%);
+}
+
+:global(.dark) .login-card {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 </style>

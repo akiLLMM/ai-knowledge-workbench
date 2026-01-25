@@ -38,5 +38,50 @@ export const handlers = [
     return new HttpResponse(stream, {
       headers: { "Content-Type": "text/plain; charset=utf-8" }
     })
+  }),
+
+  // 登录 mock
+  http.post("/auth/login", async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as {
+      username: string
+      password: string
+      code?: string
+    }
+
+    const validUser = body.username === "admin" || body.username === "editor"
+    const validPass = body.password === "12345678"
+
+    if (!validUser || !validPass) {
+      return HttpResponse.json(
+        { code: 1, message: "用户名或密码错误" },
+        { status: 401 }
+      )
+    }
+
+    return HttpResponse.json({
+      code: 0,
+      data: { token: `mock-token-${Date.now()}` }
+    })
+  }),
+
+  // 验证码 mock（如果未来切回接口验证码可启用）
+  http.get("/auth/captcha", async () => {
+    await delay(200)
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="104" height="40">
+        <rect width="100%" height="100%" fill="#f5f7fa"/>
+        <text x="52" y="26" text-anchor="middle" font-size="18" font-family="Arial" fill="#1f2d3d" letter-spacing="3">
+          MOCK
+        </text>
+        <line x1="6" y1="8" x2="98" y2="32" stroke="#dcdfe6" />
+        <line x1="8" y1="30" x2="96" y2="6" stroke="#dcdfe6" />
+      </svg>
+    `.trim()
+
+    return HttpResponse.json({
+      code: 0,
+      data: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+    })
   })
 ]
