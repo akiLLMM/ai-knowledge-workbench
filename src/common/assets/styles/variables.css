@@ -45,6 +45,15 @@
   --v3-hamburger-text-color: var(--el-text-color-primary);
   /* RightPanel 组件  */
   --v3-rightpanel-button-bg-color: #001428;
+
+  /* 默认主题主色（蓝黑） */
+  --el-color-primary: #2f6bff;
+  --el-color-primary-light-3: #2f6bffb3;
+  --el-color-primary-light-5: #2f6bff80;
+  --el-color-primary-light-7: #2f6bff4d;
+  --el-color-primary-light-8: #2f6bff33;
+  --el-color-primary-light-9: #2f6bff1a;
+  --el-color-primary-dark-2: #1e4fd6;
 }
 
 /* 内容区放大时，将不需要的组件隐藏 */

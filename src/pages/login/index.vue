@@ -3,7 +3,7 @@ import type { FormRules } from "element-plus"
 import type { LoginRequestData } from "./apis/type"
 import { Key, Loading, Lock, Picture, User } from "@element-plus/icons-vue"
 import { useUserStore } from "@/pinia/stores/user"
-import { getCaptchaApi, loginApi } from "./apis"
+import { loginApi } from "./apis"
 
 const router = useRouter()
 const route = useRoute()
@@ -64,21 +64,43 @@ function handleLogin() {
     }).catch(() => {
       createCode()
       loginFormData.password = ""
+      loginFormData.code = ""
     }).finally(() => {
       loading.value = false
     })
   })
 }
 
-/** 创建验证码（接口获取） */
-async function createCode() {
-  loginFormData.code = ""
-  try {
-    const { data } = await getCaptchaApi()
-    codeUrl.value = data
-  } catch {
-    ElMessage.error("验证码获取失败")
+// 生成本地验证码
+function generateCaptchaText(len = 4) {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+  let result = ""
+  for (let i = 0; i < len; i++) {
+    result += chars[Math.floor(Math.random() * chars.length)]
   }
+  return result
+}
+
+function buildCaptchaSvg(text: string) {
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="104" height="40">
+  <rect width="100%" height="100%" fill="#f5f7fa"/>
+  <text x="52" y="26" text-anchor="middle" font-size="18" font-family="Arial" fill="#1f2d3d" letter-spacing="3">
+    ${text}
+  </text>
+  <line x1="6" y1="8" x2="98" y2="32" stroke="#dcdfe6" />
+  <line x1="8" y1="30" x2="96" y2="6" stroke="#dcdfe6" />
+</svg>`.trim()
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+/** 创建验证码（本地生成） */
+function createCode() {
+  loginFormData.code = ""
+  const text = generateCaptchaText(4)
+  captchaText.value = text
+  codeUrl.value = buildCaptchaSvg(text)
 }
 
 // 初始化验证码
@@ -89,16 +111,8 @@ createCode()
   <div class="login-container">
     <div class="login-card">
       <div class="brand">
-        <!-- 替换为你的 logo 路径 -->
-        <img class="brand-logo" src="@@/assets/images/layouts/Klogo-text-2.png" alt="logo">
-        <div class="brand-title">
-          AI Knowledge Workbench
-        </div>
-        <div class="brand-subtitle">
-          面向个人的 RAG 轻量工作台
-        </div>
+        <img class="brand-logo" src="@@/assets/images/layouts/klogo-text-1.png" alt="logo">
       </div>
-
       <div class="form-area">
         <el-form
           ref="loginFormRef"
@@ -160,10 +174,6 @@ createCode()
             登 录
           </el-button>
         </el-form>
-
-        <div class="form-hint">
-          默认账号：admin / editor · 密码：12345678
-        </div>
       </div>
     </div>
   </div>
@@ -187,17 +197,31 @@ createCode()
   }
 }
 
+.login-container {
+  /* 默认主题（蓝白黑） */
+  --login-bg-start: #f5f8ff;
+  --login-bg-end: #ffffff;
+  --login-card-bg: #ffffff;
+  --login-border: #dbe6ff;
+  --login-shadow: 0 10px 40px rgba(18, 42, 92, 0.12);
+  --login-title: #0f1a2a;
+  --login-subtitle: #5c6f90;
+
+  background: linear-gradient(180deg, var(--login-bg-start) 0%, var(--login-bg-end) 100%);
+}
+
 .login-card {
-  width: 420px;
-  max-width: 92vw;
-  border-radius: 16px;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-light);
-  box-shadow: 0 8px 32px rgba(16, 24, 40, 0.08);
-  padding: 28px 28px 24px;
+  width: 520px;
+  max-width: 94vw;
+  padding: 40px 40px 42px;
+  gap: 26px;
+  border-radius: 18px;
+  background: var(--login-card-bg);
+  border: 1px solid var(--login-border);
+  box-shadow: var(--login-shadow);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .brand {
@@ -207,20 +231,23 @@ createCode()
   gap: 8px;
 
   .brand-logo {
-    height: 44px;
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+    display: block;
     object-fit: contain;
   }
 
   .brand-title {
     font-size: 18px;
     font-weight: 600;
-    color: var(--el-text-color-primary);
+    color: var(--login-title);
     letter-spacing: 0.2px;
   }
 
   .brand-subtitle {
     font-size: 13px;
-    color: var(--el-text-color-secondary);
+    color: var(--login-subtitle);
   }
 }
 
@@ -241,24 +268,31 @@ createCode()
 
   .el-button {
     width: 100%;
-    margin-top: 6px;
+    margin-top: 14px;
+    margin-bottom: 12px;
+  }
+
+  .form-hint {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
+    text-align: center;
   }
 }
 
-.form-hint {
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  text-align: center;
-}
-
-/* 暗色模式优化 */
+/* 暗黑主题（蓝黑） */
 :global(.dark) .login-container {
-  background: linear-gradient(180deg, #0f1115 0%, #14171d 100%);
+  --login-bg-start: #0b1220;
+  --login-bg-end: #0f172a;
+  --login-card-bg: #0f1b33;
+  --login-border: rgba(70, 98, 150, 0.35);
+  --login-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  --login-title: #e6eefc;
+  --login-subtitle: #9bb0d1;
 }
 
 :global(.dark) .login-card {
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  border-color: var(--login-border);
+  box-shadow: var(--login-shadow);
 }
 </style>
