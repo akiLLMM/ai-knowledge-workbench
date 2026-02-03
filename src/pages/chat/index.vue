@@ -1,4 +1,14 @@
 <script setup lang="ts">
+import {
+  ArrowDown,
+  BookOpen,
+  Bot,
+  Copy,
+  Info,
+  RefreshCcw,
+  Sparkles,
+  User
+} from "lucide-vue-next"
 import { computed, nextTick, onMounted, ref, watch } from "vue"
 import { useRoute } from "vue-router"
 import { useKnowledge } from "../knowledge/composables/useKnowledge"
@@ -134,200 +144,281 @@ async function copyMessage(msgId: string, content: string) {
 
 <template>
   <div class="chat-page">
-    <h2>Chat</h2>
-
-    <!-- 知识选择区 -->
-    <section>
-      <h3>可用知识</h3>
-
-      <ul>
-        <li
-          v-for="item in readyKnowledge"
-          :key="item.id"
-        >
-          <label>
-            <input
-              type="checkbox"
-              :value="item.id"
-              v-model="selectedKnowledgeIds"
-            >
-            {{ item.title }}
-          </label>
-        </li>
-      </ul>
-    </section>
-
-    <!-- 对话区 -->
-    <section v-if="session">
-      <h3>对话</h3>
-      <!-- Chat 空状态 -->
-      <div
-        v-if="isEmptyChat"
-        style="
-          padding: 32px;
-          text-align: center;
-          color: #666;
-          border: 1px dashed #ddd;
-          border-radius: 8px;
-        "
-      >
-        <div style="font-size: 18px; margin-bottom: 8px;">
-          👋 欢迎使用 AI 知识助手
-        </div>
-
-        <div style="margin-bottom: 16px;">
-          你可以基于自己的知识库，向 AI 提问并获得整理后的回答。
-        </div>
-
-        <div style="font-size: 14px; line-height: 1.8;">
-          开始前你可以：<br>
-          1️⃣ 选择要使用的知识<br>
-          2️⃣ 在下方输入你的问题<br>
-          3️⃣ 按 Enter 发送，Shift + Enter 换行
-        </div>
-      </div>
-      <!-- 正常消息列表 -->
-      <div
-        ref="messagesEl"
-        style="height: 420px; overflow: auto; border: 1px solid #eee; padding: 12px; border-radius: 8px"
-        @scroll="updateAutoScroll"
-      >
-        <div
-          v-for="(msg, index) in session.messages"
-          :key="msg.id"
-          class="chat-message"
-          :class="msg.role"
-          style="margin-bottom: 8px"
-        >
-          <!-- assistant 头像（左） -->
-          <div v-if="msg.role === 'assistant'" class="chat-avatar assistant">
-            🤖
+    <div class="chat-layout">
+      <!-- 左侧：对话区 -->
+      <section class="chat-panel" v-if="session">
+        <header class="panel-header">
+          <div class="panel-title">
+            <Sparkles class="icon" />
+            <span>AI 对话</span>
           </div>
-          <div class="chat-bubble">
-            <!-- 操作按钮区（Copy + Regenerate） -->
-            <div
-              v-if="msg.role === 'assistant'"
-              class="bubble-actions"
-            >
-              <!-- Copy -->
-              <button
-                type="button"
-                class="action-btn"
-                @click="copyMessage(msg.id, msg.content)"
-              >
-                {{ copiedId === msg.id ? "✓ 已复制" : "复制" }}
-              </button>
+        </header>
 
-              <!-- Regenerate（只给最后一条 assistant） -->
-              <button
-                v-if="index === session.messages.length - 1 && !isThinking"
-                type="button"
-                class="action-btn"
-                @click="regenerate(selectedKnowledgeIds)"
-              >
-                🔄 重新生成
-              </button>
+        <!-- Chat 空状态 -->
+        <div v-if="isEmptyChat" class="empty-state">
+          <div class="empty-title">
+            <Sparkles class="icon" />
+            <span>欢迎使用 AI 知识助手</span>
+          </div>
+          <div class="empty-desc">
+            你可以基于自己的知识库，向 AI 提问并获得整理后的回答。
+          </div>
+          <div class="empty-tips">
+            <div><Info class="icon" /> 选择要使用的知识</div>
+            <div><Info class="icon" /> 在下方输入你的问题</div>
+          </div>
+        </div>
+
+        <!-- 正常消息列表 -->
+        <div
+          ref="messagesEl"
+          class="messages"
+          @scroll="updateAutoScroll"
+        >
+          <div
+            v-for="(msg, index) in session.messages"
+            :key="msg.id"
+            class="chat-message"
+            :class="msg.role"
+          >
+            <!-- assistant 头像（左） -->
+            <div v-if="msg.role === 'assistant'" class="chat-avatar assistant">
+              <Bot class="icon" />
             </div>
 
-            <pre style="display: inline; white-space: pre-wrap">{{ msg.content }}</pre>
+            <div class="chat-bubble">
+              <!-- 操作按钮区（Copy + Regenerate） -->
+              <div v-if="msg.role === 'assistant'" class="bubble-actions">
+                <button
+                  type="button"
+                  class="action-btn"
+                  @click="copyMessage(msg.id, msg.content)"
+                >
+                  <Copy class="icon-sm" />
+                  {{ copiedId === msg.id ? "已复制" : "复制" }}
+                </button>
+                <button
+                  v-if="index === session.messages.length - 1 && !isThinking"
+                  type="button"
+                  class="action-btn"
+                  @click="regenerate(selectedKnowledgeIds)"
+                >
+                  <RefreshCcw class="icon-sm" />
+                  重新生成
+                </button>
+              </div>
+
+              <pre>{{ msg.content }}</pre>
+            </div>
+
+            <!-- user 头像（右） -->
+            <div v-if="msg.role === 'user'" class="chat-avatar user">
+              <User class="icon" />
+            </div>
           </div>
-          <!-- user 头像（右） -->
-          <div v-if="msg.role === 'user'" class="chat-avatar user">
-            👤
+
+          <div v-if="isThinking" class="chat-message assistant thinking">
+            <div class="chat-avatar assistant">
+              <Bot class="icon" />
+            </div>
+            <div class="chat-bubble thinking">
+              正在思考中，请稍候…
+            </div>
+          </div>
+
+          <!-- 回到底部按钮 -->
+          <button
+            v-if="!autoScroll"
+            @click="scrollToBottomAndResume"
+            class="scroll-bottom"
+          >
+            <ArrowDown class="icon-sm" />
+            回到底部
+          </button>
+        </div>
+
+        <!-- 输入区 -->
+        <div class="input-panel">
+          <div v-if="errorMessage" class="error-msg">
+            ⚠️ {{ errorMessage }}
+            <button
+              v-if="!isThinking"
+              class="retry-btn"
+              @click="retry(selectedKnowledgeIds)"
+            >
+              <RefreshCcw class="icon-sm" />
+              重试
+            </button>
+          </div>
+
+          <div
+            v-if="selectedKnowledgeIds.length === 0"
+            class="hint"
+          >
+            <Info class="icon-sm" />
+            未选择知识时，AI 将基于问题本身进行回答
+          </div>
+
+          <div class="input-row">
+            <textarea
+              v-model="question"
+              placeholder="请输入你的问题，Enter 发送，Shift + Enter 换行"
+              :disabled="isThinking"
+              @keydown.enter.exact.prevent="onEnter"
+              @keydown.shift.enter.stop
+            />
+            <button
+              class="send-btn"
+              @click="onEnter"
+              :disabled="isThinking"
+            >
+              {{ isThinking ? "思考中…" : "提问" }}
+            </button>
           </div>
         </div>
-        <div
-          v-if="isThinking"
-          class="chat-message assistant"
-          style="margin-top: 8px; color: #888"
-        >
-          <div class="chat-avatar assistant">
-            🤖
-          </div>
-          <div class="chat-bubble thinking">
-            正在思考中，请稍候…
-          </div>
-        </div>
-        <!-- 回到底部按钮 -->
-        <button
-          v-if="!autoScroll"
-          @click="scrollToBottomAndResume"
-          style="
-            position: sticky;
-            bottom: 12px;
-            float: right;
-            margin-top: 8px;
-            padding: 6px 10px;
-            font-size: 12px;
-            border-radius: 16px;
-            border: 1px solid #ddd;
-            background: #fff;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-          "
-        >
-          ⬇ 回到底部
-        </button>
-      </div>
-    </section>
+      </section>
 
-    <!-- 输入区 -->
-    <section>
-      <div
-        v-if="errorMessage"
-        style="
-          color: #d93026;
-          font-size: 13px;
-          margin-bottom: 6px;
-        "
-      >
-        ⚠️ {{ errorMessage }}
-      </div>
-      <button
-        v-if="errorMessage && !isThinking"
-        @click="retry(selectedKnowledgeIds)"
-        style="margin-left: 8px; font-size: 12px"
-      >
-        🔄 重试
-      </button>
-      <div
-        v-if="selectedKnowledgeIds.length === 0"
-        style="font-size: 12px; color: #999; margin-bottom: 4px;"
-      >
-        💡 未选择知识时，AI 将基于问题本身进行回答
-      </div>
-      <textarea
-        v-model="question"
-        placeholder="请输入你的问题"
-        :disabled="isThinking"
-        @keydown.enter.exact.prevent="onEnter"
-        @keydown.shift.enter.stop
-      />
+      <!-- 右侧：可用知识区 -->
+      <aside class="knowledge-panel">
+        <header class="panel-header">
+          <div class="panel-title">
+            <BookOpen class="icon" />
+            <span>可用知识</span>
+          </div>
+        </header>
 
-      <button
-        @click="onEnter"
-        :disabled="isThinking"
-      >
-        {{ isThinking ? "思考中…" : "提问" }}
-      </button>
-    </section>
+        <ul class="knowledge-list">
+          <li
+            v-for="item in readyKnowledge"
+            :key="item.id"
+            class="knowledge-item"
+          >
+            <label class="knowledge-label">
+              <input
+                type="checkbox"
+                :value="item.id"
+                v-model="selectedKnowledgeIds"
+              >
+              <span>{{ item.title }}</span>
+            </label>
+          </li>
+        </ul>
+      </aside>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.chat-message {
-  display: flex;
-  margin-bottom: 12px;
+.chat-page {
+  padding: 12px 16px 4px;
+  color: #0f172a;
 }
 
-/* 用户消息：右侧 */
+.chat-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 16px;
+}
+
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+  height: calc(100vh - var(--v3-header-height) - 16px);
+  min-height: 560px;
+}
+
+.panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  color: #2563eb;
+}
+.icon-sm {
+  width: 14px;
+  height: 14px;
+}
+
+.messages {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 16px;
+}
+
+.empty-state {
+  margin: 8px 16px;
+  padding: 16px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  text-align: center;
+}
+.empty-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.empty-desc {
+  color: #64748b;
+  margin-bottom: 12px;
+}
+.empty-tips {
+  display: grid;
+  gap: 6px;
+  color: #475569;
+}
+.empty-tips > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.chat-message {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
 .chat-message.user {
   justify-content: flex-end;
 }
-
-/* AI 消息：左侧 */
 .chat-message.assistant {
   justify-content: flex-start;
+}
+
+.chat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 8px;
+  flex-shrink: 0;
+  background: #eef2ff;
+  color: #1d4ed8;
+}
+.chat-avatar.user {
+  background: #eef2ff;
+  color: #1d4ed8;
 }
 
 .chat-bubble {
@@ -340,72 +431,21 @@ async function copyMessage(msgId: string, content: string) {
   word-break: break-word;
   position: relative;
 }
-
-/* 用户气泡样式 */
 .chat-message.user .chat-bubble {
-  background-color: #1677ff;
-  color: #fff;
+  background-color: #dbeafe;
+  color: #0f172a;
   border-bottom-right-radius: 4px;
 }
-
-/* AI 气泡样式 */
 .chat-message.assistant .chat-bubble {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: #f1f5f9;
+  color: #0f172a;
   border-bottom-left-radius: 4px;
 }
-
-/* thinking 状态稍微弱一点 */
 .chat-bubble.thinking {
   font-style: italic;
-  color: #666;
+  color: #64748b;
 }
 
-.chat-message {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-/* user 消息靠右 */
-.chat-message.user {
-  justify-content: flex-end;
-}
-
-/* assistant 消息靠左 */
-.chat-message.assistant {
-  justify-content: flex-start;
-}
-
-/* 头像通用样式 */
-.chat-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 8px;
-  flex-shrink: 0;
-}
-
-/* user 头像 */
-.chat-avatar.user {
-  background: #1677ff;
-  color: #fff;
-}
-
-/* assistant 头像 */
-.chat-avatar.assistant {
-  background: #eee;
-  color: #555;
-}
-.chat-bubble {
-  position: relative;
-}
-
-/* 操作按钮容器 */
 .bubble-actions {
   position: absolute;
   top: 6px;
@@ -415,25 +455,131 @@ async function copyMessage(msgId: string, content: string) {
   opacity: 0;
   transition: opacity 0.15s;
 }
-
-/* hover assistant 气泡时显示 */
 .chat-message.assistant .chat-bubble:hover .bubble-actions {
   opacity: 1;
 }
-
-/* 按钮通用样式 */
 .action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
   padding: 2px 6px;
   border: none;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.05);
-  color: #555;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.08);
+  color: #475569;
   cursor: pointer;
   white-space: nowrap;
 }
-
 .action-btn:hover {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(15, 23, 42, 0.16);
+}
+
+.scroll-bottom {
+  position: sticky;
+  bottom: 12px;
+  float: right;
+  margin-top: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.input-panel {
+  border-top: 1px solid #f1f5f9;
+  padding: 16px 20px 16px;
+  margin-top: auto;
+}
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+textarea {
+  min-height: 120px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  outline: none;
+  resize: vertical;
+}
+textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+.send-btn {
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+}
+.send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-msg {
+  color: #dc2626;
+  font-size: 13px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  border: none;
+  background: transparent;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+.hint {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.knowledge-panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+  height: calc(100vh - var(--v3-header-height) - 16px);
+  min-height: 560px;
+  padding-bottom: 4px;
+}
+.knowledge-list {
+  list-style: none;
+  padding: 8px 16px 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.knowledge-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #f8fafc;
+}
+.knowledge-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 </style>
