@@ -46,6 +46,7 @@ export const constantRoutes: RouteRecordRaw[] = [
       hidden: true
     }
   },
+  // ================= Layout A：Dashboard区 =================
   {
     path: "/",
     component: Layouts,
@@ -63,41 +64,68 @@ export const constantRoutes: RouteRecordRaw[] = [
       }
     ]
   },
+  // ================= Layout B：业务功能区 =================
   {
-    path: "/chat",
-    name: "Chat",
-    component: () => import("@/pages/chat/index.vue"),
-    meta: {
-      title: "AI Chat",
-      elIcon: "ChatDotRound"
-    }
+    path: "/",
+    component: Layouts,
+    redirect: "/chat",
+    children: [
+      {
+        path: "chat",
+        name: "Chat",
+        component: () => import("@/pages/chat/index.vue"),
+        meta: {
+          title: "AI Chat",
+          elIcon: "ChatDotRound"
+        }
+      }
+    ]
   },
   {
     path: "/knowledge",
-    name: "Knowledge",
-    component: () => import("@/pages/knowledge/index.vue"),
-    meta: {
-      title: "Knowledge Base",
-      elIcon: "Collection"
-    }
+    component: Layouts,
+    redirect: "/knowledge",
+    children: [
+      {
+        path: "",
+        name: "Knowledge",
+        component: () => import("@/pages/knowledge/index.vue"),
+        meta: {
+          title: "Knowledge Base",
+          elIcon: "Collection"
+        }
+      }
+    ]
   },
   {
     path: "/mcp",
-    name: "MCP",
-    component: () => import("@/pages/mcp/MCPTools.vue"),
-    meta: {
-      title: "MCP Tools",
-      elIcon: "Tools"
-    }
+    component: Layouts,
+    children: [
+      {
+        path: "",
+        name: "MCP",
+        component: () => import("@/pages/mcp/MCPTools.vue"),
+        meta: {
+          title: "MCP Tools",
+          elIcon: "Tools"
+        }
+      }
+    ]
   },
   {
     path: "/tasks",
-    name: "Tasks",
-    component: () => import("@/pages/tasks/TaskList.vue"),
-    meta: {
-      title: "Tasks / Logs",
-      elIcon: "List"
-    }
+    component: Layouts,
+    children: [
+      {
+        path: "",
+        name: "Tasks",
+        component: () => import("@/pages/tasks/TaskList.vue"),
+        meta: {
+          title: "Tasks / Logs",
+          elIcon: "List"
+        }
+      }
+    ]
   }
 ]
 
