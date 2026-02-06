@@ -58,10 +58,9 @@ export const constantRoutes: RouteRecordRaw[] = [
   {
     path: "/chat",
     component: Layouts,
-    redirect: "/chat/index",
     children: [
       {
-        path: "index",
+        path: "",
         name: "Chat",
         component: () => import("@/pages/chat/index.vue"),
         meta: {
@@ -74,10 +73,9 @@ export const constantRoutes: RouteRecordRaw[] = [
   {
     path: "/knowledge",
     component: Layouts,
-    redirect: "/knowledge/index",
     children: [
       {
-        path: "index",
+        path: "",
         name: "Knowledge",
         component: () => import("@/pages/knowledge/index.vue"),
         meta: {
@@ -90,10 +88,9 @@ export const constantRoutes: RouteRecordRaw[] = [
   {
     path: "/mcp",
     component: Layouts,
-    redirect: "/mcp/index",
     children: [
       {
-        path: "index",
+        path: "",
         name: "MCP",
         component: () => import("@/pages/mcp/MCPTools.vue"),
         meta: {
@@ -106,10 +103,9 @@ export const constantRoutes: RouteRecordRaw[] = [
   {
     path: "/tasks",
     component: Layouts,
-    redirect: "/tasks/index",
     children: [
       {
-        path: "index",
+        path: "",
         name: "Tasks",
         component: () => import("@/pages/tasks/TaskList.vue"),
         meta: {
