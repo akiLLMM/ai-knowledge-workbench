@@ -92,7 +92,7 @@ export const constantRoutes: RouteRecordRaw[] = [
       {
         path: "",
         name: "MCP",
-        component: () => import("@/pages/mcp/MCPTools.vue"),
+        component: () => import("@/pages/mcp/index.vue"),
         meta: {
           title: "MCP Tools",
           elIcon: "Tools"
