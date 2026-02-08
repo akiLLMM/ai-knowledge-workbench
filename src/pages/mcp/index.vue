@@ -2,6 +2,10 @@
 import ToolCard from "./components/ToolCard.vue"
 import { useMcpTools } from "./composables/useMcpTools"
 
+defineOptions({
+  name: "Knowledge"
+})
+
 const { tools, toggleTool, runTool } = useMcpTools()
 </script>
 

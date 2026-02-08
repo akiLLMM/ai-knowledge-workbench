@@ -107,7 +107,7 @@ export const constantRoutes: RouteRecordRaw[] = [
       {
         path: "",
         name: "Tasks",
-        component: () => import("@/pages/tasks/TaskList.vue"),
+        component: () => import("@/pages/tasks/index.vue"),
         meta: {
           title: "Tasks / Logs",
           elIcon: "List"
