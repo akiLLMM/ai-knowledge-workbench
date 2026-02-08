@@ -24,16 +24,35 @@ onMounted(() => {
 
 <template>
   <div class="knowledge-page">
-    <KnowledgeEditor ref="editorRef" @submit="addKnowledge" />
-    <KnowledgeList :list="list" @create="onCreate" />
+    <div class="knowledge-layout">
+      <section class="knowledge-card">
+        <KnowledgeEditor ref="editorRef" @submit="addKnowledge" />
+      </section>
+      <section class="knowledge-card">
+        <KnowledgeList :list="list" @create="onCreate" />
+      </section>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .knowledge-page {
+  padding: 12px 16px 4px;
+  color: #0f172a;
+}
+.knowledge-layout {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  align-items: center;
+  width: 100%;
+}
+.knowledge-card {
+  width: min(100%, 980px);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
   padding: 16px;
 }
 </style>

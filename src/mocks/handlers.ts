@@ -40,31 +40,6 @@ export const handlers = [
     })
   }),
 
-  // 登录 mock
-  http.post("/auth/login", async ({ request }) => {
-    await delay(300)
-    const body = (await request.json()) as {
-      username: string
-      password: string
-      code?: string
-    }
-
-    const validUser = body.username === "admin" || body.username === "editor"
-    const validPass = body.password === "12345678"
-
-    if (!validUser || !validPass) {
-      return HttpResponse.json(
-        { code: 1, message: "用户名或密码错误" },
-        { status: 401 }
-      )
-    }
-
-    return HttpResponse.json({
-      code: 0,
-      data: { token: `mock-token-${Date.now()}` }
-    })
-  }),
-
   // 验证码 mock（如果未来切回接口验证码可启用）
   http.get("/auth/captcha", async () => {
     await delay(200)
