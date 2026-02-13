@@ -4,7 +4,7 @@ import type { KnowledgeItem } from "../../knowledge/types"
 import type { ChatMessage, ChatSession } from "../types"
 
 import { ref } from "vue"
-import { streamRag } from "@/pages/chat/services/rag.service.ts"
+import { chatStream } from "@/pages/chat/services/chat.service.ts"
 
 const errorMessage = ref<string | null>(null)
 
@@ -106,17 +106,9 @@ export function useChat(
 
     try {
       const context = buildContext(question, selectedKnowledgeIds)
-
-      // 开始 streaming
-      await streamRag(
-        {
-          question: context.question,
-          knowledge: context.knowledge
-        },
-        (chunk) => {
-          appendToLastAssistant(chunk)
-        }
-      )
+      await chatStream(context, (chunk) => {
+        appendToLastAssistant(chunk)
+      })
     } catch {
       // 出错时：补一条错误提示
       assistantMessage.content = "❌ 出现错误，暂时无法生成回答。"
